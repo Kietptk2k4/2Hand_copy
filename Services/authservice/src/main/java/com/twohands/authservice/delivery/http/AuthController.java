@@ -1,10 +1,15 @@
 package com.twohands.authservice.delivery.http;
 
+import com.twohands.authservice.application.auth.login.LoginCommand;
+import com.twohands.authservice.application.auth.login.LoginResult;
+import com.twohands.authservice.application.auth.login.LoginUseCase;
 import com.twohands.authservice.application.auth.register.RegisterCommand;
 import com.twohands.authservice.application.auth.register.RegisterResult;
 import com.twohands.authservice.application.auth.register.RegisterUseCase;
 import com.twohands.authservice.application.auth.ratelimit.RateLimitService;
 import com.twohands.authservice.application.auth.verify.VerifyEmailUseCase;
+import com.twohands.authservice.delivery.http.dto.LoginRequest;
+import com.twohands.authservice.delivery.http.dto.LoginResponse;
 import com.twohands.authservice.delivery.http.dto.RegisterRequest;
 import com.twohands.authservice.delivery.http.dto.RegisterResponse;
 import com.twohands.authservice.delivery.http.dto.VerifyRequest;
@@ -23,11 +28,14 @@ public class AuthController {
     private final RegisterUseCase registerUseCase;
     private final VerifyEmailUseCase verifyEmailUseCase;
     private final RateLimitService rateLimitService;
+    private final LoginUseCase loginUseCase;
 
     public AuthController(RegisterUseCase registerUseCase,
                           VerifyEmailUseCase verifyEmailUseCase,
+                          LoginUseCase loginUseCase,
                           RateLimitService rateLimitService) {
         this.registerUseCase = registerUseCase;
+        this.loginUseCase = loginUseCase;
         this.verifyEmailUseCase = verifyEmailUseCase;
         this.rateLimitService = rateLimitService;
     }
@@ -75,6 +83,55 @@ public class AuthController {
         // 4. Return a success response if the OTP is valid and the account is activated
         // Trả về phản hồi thành công nếu mã OTP hợp lệ và tài khoản đã được kích hoạt
         return ResponseEntity.ok(new VerifyResponse("Email verified successfully. Your account is now active."));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(
+            @RequestBody LoginRequest req,
+            HttpServletRequest request
+    ) {
+        // 1. Collect metadata for security audit and session management
+        // Thu thập siêu dữ liệu để kiểm toán bảo mật và quản lý phiên làm việc
+        
+        // Identify the actual origin IP address of the client
+        // Xác định địa chỉ IP gốc thực tế của khách hàng
+        String ip = getClientIp(request);        
+        String userAgent = request.getHeader("User-Agent"); // Identify browser/app type (Nhận diện trình duyệt/ứng dụng)
+        String deviceId = request.getHeader("X-Device-Id"); // Unique ID for hardware tracking (ID duy nhất để theo dõi thiết bị)
+
+        // 2. Encapsulate data into a Command object (CQRS pattern influence)
+        // Đóng gói dữ liệu vào đối tượng Command (ảnh hưởng từ mô hình CQRS)
+        LoginCommand cmd = new LoginCommand(
+                req.getEmail(),
+                req.getPassword(),
+                ip,
+                userAgent,
+                deviceId
+        );
+
+        // 3. Delegate authentication logic to the specialized Use Case
+        // Ủy thác logic xác thực cho Use Case chuyên biệt xử lý
+        LoginResult result = loginUseCase.execute(cmd);
+
+        // 4. Map the internal result to a DTO for the client response
+        // Ánh xạ kết quả nội bộ sang DTO để trả về cho khách hàng
+        LoginResponse.UserSummary userSummary = new LoginResponse.UserSummary(
+                result.userId(),
+                result.email(),
+                result.status(),
+                result.emailVerified(),
+                result.roles()
+        );
+
+        // 5. Return tokens and user info (Success 200 OK)
+        // Trả về các token và thông tin người dùng (Thành công 200 OK)
+        return ResponseEntity.ok(new LoginResponse(
+                result.accessToken(),
+                result.refreshToken(),
+                result.tokenType(),
+                result.expiresIn(),
+                userSummary
+        ));
     }
 
     private String getClientIp(HttpServletRequest request) {

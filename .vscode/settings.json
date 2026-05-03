@@ -1,3 +1,6 @@
 {
-  "java.project.sourcePaths": ["Services/authservice/src/main/java"]
+  "java.project.sourcePaths": [
+    "Services/authservice/src/main/java"
+  ],
+  "java.configuration.updateBuildConfiguration": "interactive"
 }

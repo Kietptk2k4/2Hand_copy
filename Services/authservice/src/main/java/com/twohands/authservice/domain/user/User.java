@@ -6,6 +6,7 @@ import com.twohands.authservice.domain.role.Role;
 import com.twohands.authservice.domain.session.RefreshTokenSession;
 
 import java.time.Instant;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -22,10 +23,10 @@ public class User {
     private UserStatus status;
     private Boolean emailVerified;
     private Boolean phoneVerified;
-    private LocalDateTime passwordChangedAt;
-    private LocalDateTime lastLoginAt;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant passwordChangedAt;
+    private Instant lastLoginAt;
+    private Instant createdAt;
+    private Instant updatedAt;
     private Set<Role> roles = new HashSet<>();
     private UserSettings settings;
     private UserProfile profile;
@@ -100,35 +101,35 @@ public class User {
         this.phoneVerified = phoneVerified;
     }
 
-    public LocalDateTime getPasswordChangedAt() {
+    public Instant getPasswordChangedAt() {
         return passwordChangedAt;
     }
 
-    public void setPasswordChangedAt(LocalDateTime passwordChangedAt) {
+    public void setPasswordChangedAt(Instant passwordChangedAt) {
         this.passwordChangedAt = passwordChangedAt;
     }
 
-    public LocalDateTime getLastLoginAt() {
+    public Instant getLastLoginAt() {
         return lastLoginAt;
     }
 
-    public void setLastLoginAt(LocalDateTime lastLoginAt) {
+    public void setLastLoginAt(Instant lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 
-    public LocalDateTime getUpdatedAt() {
+    public Instant getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
+    public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
 
